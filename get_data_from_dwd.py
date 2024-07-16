@@ -4,11 +4,14 @@ from datetime import datetime
 from tqdm import tqdm
 from scipy.signal import resample
 
+import os
+
 import matplotlib.pyplot as plt
 import pandas  as pd
 import json 
  
-def stored_time_engine():
+def stored_time_engine(engine):
+    dw = engine
     stored_time = dw.Data.StartStoreTime
     dt = datetime(stored_time.year, stored_time.month,
                   stored_time.day, stored_time.hour,
@@ -22,7 +25,7 @@ def stored_time_engine():
     return dt64
     
 
-def time_stamps_engine(dt64):
+def time_stamps_engine(dt64,dw):
     total_samples = dw.LoadEngine.DataSections.Item(0).DataCount
     fs = dw.Data.SampleRate
     interval_ns = int(1e9 / fs)
@@ -30,25 +33,27 @@ def time_stamps_engine(dt64):
     # timestamps = timestamps.reshape(-1, 1)
     return timestamps
 
-def datasections_engine():
+def datasections_engine(engine):
+    dw = engine
     data_sections = dw.LoadEngine.DataSections
     data_section = data_sections.Item(0)
     return data_section
 
-def get_channel_data(c_id,data_section):
+def get_channel_data(c_id,data_section,dw):
     ch = dw.Data.UsedChannels.Item(c_id)
     data , _ =data_section.ReadData(ch)
     return data
 
-def time_stamp_engine_array():
-    _dt64 = stored_time_engine()
-    _timestamps = time_stamps_engine(_dt64)
+def time_stamp_engine_array(dw):
+
+    _dt64 = stored_time_engine(dw)
+    _timestamps = time_stamps_engine(_dt64,dw)
     return _timestamps
 
-def get_channelwtime(c_id):
+def get_channelwtime(c_id,dw):
     _timestamps = time_stamp_engine_array()
     data_section = datasections_engine()
-    _data = get_channel_data(c_id,data_section)
+    _data = get_channel_data(c_id,data_section,dw=dw)
     _data = np.array(_data)
     stacked_data = np.empty(len(_data), dtype=[('timestamp', 'datetime64[ns]'), ('data', 'float64')])
     stacked_data['timestamp'] = _timestamps
@@ -56,12 +61,12 @@ def get_channelwtime(c_id):
     return stacked_data
 
 
-def get_alldata(selected_chanels,data_section):
+def get_alldata(selected_chanels,data_section,dw):
     num_columns = len(selected_chanels)
     _data = []
     _timestamps = time_stamp_engine_array()
     for i in range(num_columns):
-        _datai = get_channel_data(selected_chanels[i-1],data_section)
+        _datai = get_channel_data(selected_chanels[i-1],data_section,dw=dw)
         _data.append(_datai)
     dtype = [('timestamp', 'datetime64[ns]')] + [('data' + str(i), 'float64') for i in range(num_columns)]
     stacked_data = np.empty(len(_datai), dtype=dtype)
@@ -101,16 +106,17 @@ def resample_data(data, old_fs, new_fs):
     
     return resampled_stacked_data
 
-def get_measurements(channel_list:dict,data_section:any):
+def get_measurements(channel_list:dict,data_section:any, engine:any):
+    dw = engine
     df = pd.DataFrame()
     
-    df['timestamp']= time_stamp_engine_array()
+    df['timestamp']= time_stamp_engine_array(dw)
 
     for i in range(0, dw.Data.AllChannels.Count):
         selected_channel  = dw.Data.AllChannels.Item(i).Name 
         if (selected_channel in channel_list.keys()):
             print(i)
-            df[selected_channel] =  get_channel_data(i,data_section)
+            df[selected_channel] =  get_channel_data(i,data_section,dw=dw)
     return df
 
 
@@ -123,19 +129,24 @@ def load_dewesoft_dxd(dxd_file:str):
     dw.Left = 0
     dw.Width = 1024 
     dw.Height = 768
-
     dw.LoadFile(dxd_file)
+    return dw
 
 def open_json(file = "channel_list.json"):
     with open(file,'r')  as json_file:
         channels_list = json.load(json_file)
     return channels_list
 
-if __name__ == "__main__":
-    
-    dxd_file = r""
-    channels_list = open_json()
-    load_dewesoft_dxd(dxd_file=dxd_file)
-    data_section = datasections_engine()
-    df_0016 = get_measurements(channel_list=channels_list,data_section=data_section)
-    dict_0016 = df_0016.to_dict(orient='series')
+def save_json(data,file = "channel_list.json"):
+    with open(file, 'w') as json_file:
+        json.dump(data, json_file , indent=4)
+
+
+def os_walk_folder(root_folder:str):
+    file_list = []
+    for root, dirs, files in os.walk(root_folder):
+        for file in files:
+            if file.endswith(".dxd"):
+                file_list.append(os.path.join(root, file))
+    return file_list
+
