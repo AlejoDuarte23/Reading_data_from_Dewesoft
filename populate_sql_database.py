@@ -22,7 +22,7 @@ def dxd2df(dxd_file):
 
 if __name__ == "__main__":
 
-    dxd_list = os_walk_folder(root_folder=r"E:\Hailcreeck_pre_run")
+    dxd_list = os_walk_folder(root_folder=r"E:\Hailcreeck_pre_run\16_17_18")
     database_uri = 'sqlite:///E:/Hailcreeck_pre_run/hailcreeck.db'
     table_name = '16.07.2024_measurements'
 
