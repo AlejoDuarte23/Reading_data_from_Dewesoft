@@ -2,7 +2,7 @@ from sqlalchemy import create_engine, Column, Integer, Float, DateTime,func
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
-
+import numpy as np
 Base = declarative_base()
 
 class Measurement(Base):
@@ -27,35 +27,41 @@ class Measurement(Base):
 
 
 
-def get_measurements_between_dates(start_date: str, end_date: str):
-    start_dt = datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S')
-    end_dt = datetime.strptime(end_date, '%Y-%m-%d %H:%M:%S')
-    measurements = session.query(Measurement).filter(Measurement.timestamp.between(start_dt, end_dt)).all()
+def get_measurements_between_dates(start_date, end_date, session):
+    measurements = session.query(Measurement).filter(Measurement.timestamp.between(start_date, end_date)).all()
     return measurements
 
-def get_latest_measurements(limit: int = 100):
+def get_latest_measurements(session,limit=100):
     measurements = session.query(Measurement).order_by(Measurement.timestamp.desc()).limit(limit).all()
     return measurements
 
-def get_min_max_timestamps():
+def get_min_max_timestamps(session):
     min_timestamp = session.query(func.min(Measurement.timestamp)).scalar()
     max_timestamp = session.query(func.max(Measurement.timestamp)).scalar()
     return min_timestamp, max_timestamp
 
 
-# Initialize the database connection
-database_uri = 'sqlite:///E:/Hailcreeck_pre_run/hailcreeck.db'
-engine = create_engine(database_uri)
-Base.metadata.create_all(engine)
-
-Session = sessionmaker(bind=engine)
-session = Session()
-
-# Example usage
-start_date = '2024-07-15 15:00:00'
-end_date = '2024-07-15 16:00:00'
-
-min_timestamp, max_timestamp = get_min_max_timestamps()
-
-#measurements = get_measurements_between_dates(start_date, end_date)
-
+def measurements_to_numpy(measurements):
+    data_list = []
+    for measurement in measurements:
+        row = [
+            measurement.ai_1,
+            measurement.ai_2,
+            measurement.ai_3,
+            measurement.ai_4,
+            measurement.ai_5,
+            measurement.ai_6,
+            measurement.ai_7,
+            measurement.ai_8,
+            measurement.ai_9,
+            measurement.ai_10,
+            measurement.ai_11,
+            measurement.ai_12,
+            measurement.ai_13,
+            measurement.ai_14,
+            measurement.ai_15,
+            measurement.ai_16
+        ]
+        data_list.append(row)
+    data_array = np.array(data_list)
+    return data_array
