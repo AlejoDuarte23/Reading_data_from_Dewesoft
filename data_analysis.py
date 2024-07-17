@@ -4,11 +4,8 @@ from scipy.signal  import welch, detrend
 
 import numpy as np
 import matplotlib
+matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt  
-
-
-
-#%matplotlib qt
 
 def apply_detrend(data_array):
     # Apply linear detrending
@@ -18,13 +15,13 @@ def apply_detrend(data_array):
 def plot_pdf(array):
     frequencies, psd = welch(array, fs=100, axis=0 ,nperseg=2**12)
     plt.figure()
-    for i in range(12):
+    for i in range(np.shape(array)[1]):
         plt.plot(frequencies, psd[:,i], label=f'Channel {i+1}')
     
     plt.show()
 
 def create_session():
-    database_uri = 'sqlite:///E:/Hailcreeck_pre_run/hailcreeck.db'
+    database_uri = 'sqlite:////Users/alejandroduarte/Downloads/hailcreeck.db'
     engine = create_engine(database_uri)
     Base.metadata.create_all(engine)
 
@@ -42,8 +39,9 @@ if __name__ == "__main__":
     data_array = measurements_to_numpy(measurements)
     detrended_array = apply_detrend(data_array)
 
-    frequencies, psd = welch(detrended_array[:,:12], fs=100, axis=0 ,nperseg=2**12)
-    plt.figure()
-    for i in range(12):
-        plt.plot(frequencies, psd[:,i], label=f'Channel {i+1}')
-    plt.show()
+
+
+    X_fiter =  detrended_array[:,[0, 2, 4, 6, 8, 10]]
+    plot_pdf(X_fiter)
+    Y_fiter =  detrended_array[:,[1, 3, 5, 7, 9, 11]]
+    plot_pdf(X_fiter)

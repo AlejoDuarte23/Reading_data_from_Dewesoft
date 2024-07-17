@@ -8,7 +8,6 @@ import pandas as pd
 from sqlalchemy import create_engine
 
 
-
 def save_df_to_sql(df: pd.DataFrame, table_name: str, database_uri: str):
     engine = create_engine(database_uri)    
     df.to_sql(name=table_name, con=engine, if_exists='append', index=False)

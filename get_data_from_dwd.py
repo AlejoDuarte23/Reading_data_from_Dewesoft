@@ -9,7 +9,7 @@ import os
 import matplotlib.pyplot as plt
 import pandas  as pd
 import json 
- 
+
 def stored_time_engine(engine):
     dw = engine
     stored_time = dw.Data.StartStoreTime

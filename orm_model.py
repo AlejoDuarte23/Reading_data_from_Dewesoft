@@ -3,6 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 import numpy as np
+
 Base = declarative_base()
 
 class Measurement(Base):

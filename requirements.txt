@@ -1,0 +1,7 @@
+sqlalchemy
+numpy
+scipy 
+matplotlib
+pandas
+pywin32
+tqdm
