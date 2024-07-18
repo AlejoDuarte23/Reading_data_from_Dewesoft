@@ -1,6 +1,7 @@
-from orm_model import get_measurements_between_dates, Base, create_engine, sessionmaker , measurements_to_numpy
+from orm_model import get_measurements_between_dates, Base, create_engine, sessionmaker , measurements_to_numpy ,create_measurement_class,get_latest_measurements
 from datetime import datetime
 from scipy.signal  import welch, detrend
+from config import database_uri_local, connection_string, table_name
 
 import numpy as np
 import matplotlib
@@ -20,8 +21,8 @@ def plot_pdf(array):
     plt.xlim([0.5, 50])
     plt.show()
 
-def create_session():
-    database_uri = 'sqlite:///E:/Hailcreeck_pre_run/hailcreeck.db'
+def create_session(database_uri):
+    #database_uri = database_uri_local
     engine = create_engine(database_uri)
     Base.metadata.create_all(engine)
 
@@ -50,13 +51,15 @@ def ploting_data(array1, array2):
 
 
 if __name__ == "__main__":
-    session = create_session()
-    start_date = datetime(2024, 7, 17, 9, 30, 0, 0)
-    end_date = datetime(2024, 7, 17, 11, 0, 0, 0)
-    measurements = get_measurements_between_dates(start_date, end_date, session)
+    session = create_session(connection_string)
+    #start_date = datetime(2024, 7, 15, 9, 30, 0, 0)
+    #end_date = datetime(2024, 7, 15, 11, 0, 0, 0)
+    Measurement = create_measurement_class(table_name)
+    #measurements = get_measurements_between_dates(start_date, end_date, session, Measurement)
     
-    data_array = measurements_to_numpy(measurements)
-    detrended_array = apply_detrend(data_array)
+    #data_array = measurements_to_numpy(measurements)
+    #detrended_array = apply_detrend(data_array)
+    measurements = get_latest_measurements(session, Measurement)
 
 
     '''
