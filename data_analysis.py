@@ -3,9 +3,13 @@ from datetime import datetime
 from scipy.signal  import welch, detrend
 from config import database_uri_local, connection_string, table_name
 
+
+from Modal_Engine._engine import (SingleMeasurement,
+                                  FFTDomain,
+                                  DataVisualizer)
+
+import pickle
 import numpy as np
-import matplotlib
-matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt  
 
 def apply_detrend(data_array):
@@ -13,7 +17,7 @@ def apply_detrend(data_array):
     detrended_array = detrend(data_array, axis=0)
     return detrended_array
 
-def plot_pdf(array):
+def plot_psd(array):
     frequencies, psd = welch(array, fs=100, axis=0 ,nperseg=2**12)
     plt.figure()
     for i in range(np.shape(array)[1]):
@@ -47,22 +51,71 @@ def ploting_data(array1, array2):
     # Show the plot
     plt.show()
 
+def save_pickle(data:any, filename:str)-> None:
+    with open(filename, 'wb') as f:
+        pickle.dump(data, f)
 
-if __name__ == "__main__":
+def load_pickle(filename:str)-> any:
+    with open(filename, 'rb') as f:
+        data = pickle.load(f)
+    return data
+
+def plt_spectrogram(measurement: SingleMeasurement):
+    fdomain = FFTDomain(measurement,NFFT=2**6)
+    fdomain.fft()
+    data_vis1 = DataVisualizer(fdomain)
+    data_vis1.plot_spectrogram(cmap='jet')
+
+def get_data_array():
     session = create_session(connection_string)
-    start_date = datetime(2024, 7, 27, 21, 25, 0, 0)
+    start_date = datetime(2024, 7, 27, 20, 25, 0, 0)
     end_date = datetime(2024, 7, 27, 22, 25, 0, 0)
     Measurement = create_measurement_class(table_name)
     measurements = get_measurements_between_dates(start_date, end_date, session, Measurement)
     
-    #data_array = measurements_to_numpy(measurements)
-    #detrended_array = apply_detrend(data_array)
-    #measurements = get_latest_measurements(session, Measurement)
+    data_array = measurements_to_numpy(measurements)
+    save_pickle(data_array, "measurements_2024/7/27:20:25_2h.pkl")
+    return data_array
+
+if __name__ == "__main__":
+
+    file_name = "data/measurements_2024_7_27:20:25_2h.pkl"
+    data_set_time = "2024/7/27:20:25"
+    data_array = load_pickle(file_name)
+    filter = [0, 2, 4]
+    measurement_1 = SingleMeasurement(name =  f"{data_set_time} - ROM1 X", fs = 100,file_path= None,
+                                      description="2h test")
+    measurement_1 = measurement_1.set_data(data_array[:,filter]).resample(30)
+    plt_spectrogram(measurement_1)
 
 
-    '''
-    X_fiter =  detrended_array[:,[0, 2, 4, 6, 8, 10]]
-    plot_pdf(X_fiter)
-    Y_fiter =  detrended_array[:,[1, 3, 5, 7, 9, 11]]
-    plot_pdf(Y_fiter)
-    '''
+    filter = [1, 3, 5]
+    measurement_2 = SingleMeasurement(name =  f"{data_set_time}  - ROM1 Y", fs = 100,file_path= None,
+                                      description="1h test")
+    measurement_2 = measurement_2.set_data(data_array[:,filter]).resample(30)
+    plt_spectrogram(measurement_2)
+
+
+
+    filter = [6, 8, 10]
+    measurement_3 = SingleMeasurement(name =  f"{data_set_time}  - ROM2 X", fs = 100,file_path= None,
+                                      description="1h test")
+    measurement_3 = measurement_3.set_data(data_array[:,filter]).resample(30)
+    plt_spectrogram(measurement_3)
+
+
+
+    filter = [7, 9, 11]
+    measurement_4 = SingleMeasurement(name =  f"{data_set_time}  - ROM2 Y", fs = 100,file_path= None,
+                                      description="1h test")
+    measurement_4 = measurement_4.set_data(data_array[:,filter])
+    plt_spectrogram(measurement_4)
+
+
+
+
+
+
+
+
+
