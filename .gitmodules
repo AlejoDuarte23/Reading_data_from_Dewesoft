@@ -1,0 +1,3 @@
+[submodule "Modal_Engine"]
+	path = Modal_Engine
+	url = https://github.com/AlejoDuarte23/Modal_Engine.git
