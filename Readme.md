@@ -1,4 +1,5 @@
-
+# README:
+The following repository fetches data from both local and cloud databases to fetch data from sensors (acceleration and strains) and processes the data using the classes from another repository called Modal Engine for spectral analysis, modal analysis, and signal processing.
 
 ## Request data from data base 
 
