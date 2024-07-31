@@ -34,13 +34,11 @@ def create_session(database_uri):
 def ploting_data(array1, array2):
     fig, ax1 = plt.subplots()
 
-    # Plot the first dataset on the primary y-axis
     ax1.plot(array1, 'b-')  # 'b-' is the color blue with a solid line
     ax1.set_xlabel('Data points')  # replace with your actual x-axis label
     ax1.set_ylabel('Accelerations [g]', color='b')  # replace with your actual y-axis label
     ax1.tick_params(axis='y', labelcolor='b')
 
-    # Create a second y-axis sharing the same x-axis
     ax2 = ax1.twinx()
     ax2.plot(array2[:, 12], 'r-')  # 'r-' is the color red with a solid line
     ax2.set_ylabel('Micro Strains', color='r')  # replace with your actual y-axis label
@@ -52,14 +50,14 @@ def ploting_data(array1, array2):
 
 if __name__ == "__main__":
     session = create_session(connection_string)
-    #start_date = datetime(2024, 7, 15, 9, 30, 0, 0)
-    #end_date = datetime(2024, 7, 15, 11, 0, 0, 0)
+    start_date = datetime(2024, 7, 27, 21, 25, 0, 0)
+    end_date = datetime(2024, 7, 27, 22, 25, 0, 0)
     Measurement = create_measurement_class(table_name)
-    #measurements = get_measurements_between_dates(start_date, end_date, session, Measurement)
+    measurements = get_measurements_between_dates(start_date, end_date, session, Measurement)
     
     #data_array = measurements_to_numpy(measurements)
     #detrended_array = apply_detrend(data_array)
-    measurements = get_latest_measurements(session, Measurement)
+    #measurements = get_latest_measurements(session, Measurement)
 
 
     '''

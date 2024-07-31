@@ -65,5 +65,5 @@ def measurements_to_numpy(measurements):
             measurement.ai_16
         ]
         data_list.append(row)
-    data_array = np.array(data_list)
+    data_array = np.hstack(data_list)
     return data_array
